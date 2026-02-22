@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+
+class Company extends Model
+{
+        use HasFactory, Notifiable,HasUuids,SoftDeletes;
+
+    protected $table = "companies";
+      protected $keyType="string";
+    public $incrementing = false;
+
+    protected $fillables = [
+        'name',
+        'address',
+        'industry',
+        'website',
+        'ownerId'
+    ];
+  
+      protected $dates = [
+        'deleted_at',
+    ];
+
+        protected function casts(): array
+    {
+        return [
+            'deleted_at'=> 'datetime',
+        ];
+    }
+
+public function owner(){
+    return $this->belongsTo(User::class,'ownerId','id');
+}
+
+
+
+}
