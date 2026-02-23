@@ -15,7 +15,7 @@ class Resume extends Model
 {
     use HasFactory, Notifiable,HasUuids,SoftDeletes;
 
-    protected $table = "companies";
+    protected $table = "resumes";
       protected $keyType="string";
     public $incrementing = false;
 

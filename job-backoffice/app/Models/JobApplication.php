@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 class JobApplication extends Model
 {
      use HasFactory, Notifiable,HasUuids,SoftDeletes;
-    protected $table='job_categories';
+    protected $table='job_applications';
         protected $keyType="string";
     public $incrementing = false;
 
