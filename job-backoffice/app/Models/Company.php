@@ -7,38 +7,57 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+
 
 class Company extends Model
 {
-        use HasFactory, Notifiable,HasUuids,SoftDeletes;
+    use HasFactory, Notifiable, HasUuids, SoftDeletes;
 
     protected $table = "companies";
-      protected $keyType="string";
+
+    protected $keyType = "string";
     public $incrementing = false;
 
-    protected $fillables = [
+    protected $fillable = [
         'name',
         'address',
         'industry',
         'website',
         'ownerId'
     ];
-  
-      protected $dates = [
-        'deleted_at',
+
+    protected $casts = [
+        'deleted_at' => 'datetime',
     ];
 
-        protected function casts(): array
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    public function owner()
     {
-        return [
-            'deleted_at'=> 'datetime',
-        ];
+        return $this->belongsTo(User::class, 'ownerId', 'id');
     }
 
-public function owner(){
-    return $this->belongsTo(User::class,'ownerId','id');
+    // 🔥 أضف هاي العلاقة
+    public function jobVacancies()
+    {
+        return $this->hasMany(JobVacancy::class, 'companyId', 'id');
+    }
+
+
+public function jobApplications(): HasManyThrough
+{
+    return $this->hasManyThrough(
+        JobApplication::class,
+        JobVacancy::class,
+        'companyId',     // FK on job_vacancies
+        'jobVacancyId',  // FK on job_applications
+        'id',            // local key on companies
+        'id'             // local key on job_vacancies
+    );
 }
-
-
-
 }

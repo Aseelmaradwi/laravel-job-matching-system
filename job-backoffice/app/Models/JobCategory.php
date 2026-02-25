@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 class JobCategory extends Model
 {
+
     use HasFactory, Notifiable,HasUuids,SoftDeletes;
     protected $table='job_categories';
         protected $keyType="string";
