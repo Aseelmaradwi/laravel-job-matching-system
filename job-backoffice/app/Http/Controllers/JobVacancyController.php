@@ -7,6 +7,7 @@ use App\Models\JobVacancy;
 use App\Models\Company;
 use App\Models\JobCategory;
 use App\Http\Requests\JobVacancyCreateRequest;
+use App\Http\Requests\JobVacancyUpdateRequest;
 
 
 class JobVacancyController extends Controller
@@ -70,18 +71,27 @@ public function create()
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
-    }
+ public function edit(string $id)
+{
+    $jobVacancy = JobVacancy::findOrFail($id);
+
+    $companies = Company::select('id', 'name')->get();
+    $categories = JobCategory::select('id', 'name')->get();
+
+    return view('jobvacancy.edit', compact('jobVacancy', 'companies','categories' ));
+}
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+public function update(JobVacancyUpdateRequest $request, string $id)
+{
+    $jobVacancy = JobVacancy::findOrFail($id);
+
+    $jobVacancy->update($request->validated());
+
+    return redirect()->route('job-vacancies.index', $jobVacancy->id)->with('success', 'Job vacancy updated successfully!');
+}
 
     /**
      * Remove the specified resource from storage.
@@ -101,7 +111,7 @@ public function create()
         $jobVacancy->restore();
 
         return redirect()
-            ->route('companies.index')
+            ->route('job-vacancies.index')
             ->with('success', 'Company restored successfully');
     }
 }

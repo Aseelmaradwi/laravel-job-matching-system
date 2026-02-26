@@ -126,7 +126,7 @@
                                           class="inline-block"
                                           onsubmit="return confirm('Restore this company?')">
                                         @csrf
-                                        @method('PUT')
+                                        <!-- @method('PUT') -->
 
                                         <button type="submit"
                                                 class="text-green-600 hover:text-green-800 font-medium">

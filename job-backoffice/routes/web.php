@@ -24,9 +24,12 @@ Route::middleware('auth')->group(function () {
     [JobCategoryController::class, 'restore'])
     ->name('job-categories.restore');
 
-     Route::post('job-vacancies/{id}/restore', 
-    [JobVacancyController::class, 'restore'])
+     Route::put('job-vacancies/{id}/restore', [JobVacancyController::class, 'restore'])
     ->name('job-vacancies.restore');
+
+    Route::post('companies/{company}/restore',
+    [CompanyController::class, 'restore']
+)->name('companies.restore');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

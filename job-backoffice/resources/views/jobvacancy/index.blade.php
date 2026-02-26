@@ -135,7 +135,6 @@
                                             ♻️ Restore
                                         </button>
                                     </form>
-
                                 @else
 
                                     <a href="{{ route('job-vacancies.edit', $job->id) }}"
