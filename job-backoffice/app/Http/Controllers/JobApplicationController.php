@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\JobApplication;
+
 
 use Illuminate\Http\Request;
 
@@ -9,12 +11,19 @@ class JobApplicationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view("jobapplication.index");
+       $query = JobApplication::latest();
 
-        //
-    }
+    if ($request->input('archived') === 'true') {
+        $query->onlyTrashed();
+    } 
+
+    $jobApplications = $query->paginate(10)->onEachSide(1);
+
+    return view('jobapplication.index', compact('jobApplications'));
+}
+    
 
     /**
      * Show the form for creating a new resource.
@@ -36,10 +45,16 @@ class JobApplicationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-        //
-    }
+   public function show(string $id)
+{
+    $jobApplication = JobApplication::with([
+        'user',
+        'jobvacancy.company',
+        'resume'
+    ])->findOrFail($id);
+
+    return view('jobapplication.show', compact('jobApplication'));
+}
 
     /**
      * Show the form for editing the specified resource.
