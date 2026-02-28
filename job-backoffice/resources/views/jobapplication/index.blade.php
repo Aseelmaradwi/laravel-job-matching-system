@@ -19,6 +19,14 @@
         </div>
     </x-slot>
 
+    {{-- Success Message --}}
+    @if(session('success'))
+        <div id="success-message"
+             class="bg-green-100 text-green-700 p-4 rounded m-6 transition-opacity duration-500">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <div class="p-6">
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -51,8 +59,8 @@
 
                             {{-- Applicant Name --}}
                             <td class="px-6 py-4 font-medium">
-                          <a href="{{ route('job-applications.show', $application->id) }}"
-                                           class="text-indigo-600 hover:underline">
+                                <a href="{{ route('job-applications.show', $application->id) }}"
+                                   class="text-indigo-600 hover:underline">
                                     {{ $application->user?->name ?? 'N/A' }}
                                 </a>
                             </td>
@@ -67,10 +75,19 @@
                                 {{ $application->jobVacancy?->company?->name ?? 'N/A' }}
                             </td>
 
-                            {{-- Status --}}
+                            {{-- Status Badge --}}
                             <td class="px-6 py-4">
-                                <span class="capitalize">
-                                    {{ $application->status }}
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full
+                                    @if($application->status === 'accepted')
+                                        bg-green-100 text-green-700
+                                    @elseif($application->status === 'rejected')
+                                        bg-red-100 text-red-700
+                                    @elseif($application->status === 'pending')
+                                        bg-yellow-100 text-yellow-700
+                                    @else
+                                        bg-gray-100 text-gray-700
+                                    @endif">
+                                    {{ ucfirst($application->status) }}
                                 </span>
                             </td>
 
@@ -88,7 +105,7 @@
 
                                         <button type="submit"
                                                 class="text-green-600 hover:text-green-800 font-medium">
-                                            📦 Restore
+                                            ♻ Restore
                                         </button>
                                     </form>
 
@@ -97,7 +114,7 @@
                                     {{-- Edit --}}
                                     <a href="{{ route('job-applications.edit', $application->id) }}"
                                        class="text-yellow-600 hover:text-yellow-800 font-medium">
-                                        ✏️ Edit
+                                        ✏ Edit
                                     </a>
 
                                     {{-- Archive --}}
@@ -109,7 +126,7 @@
 
                                         <button type="submit"
                                                 class="text-red-600 hover:text-red-800 font-medium">
-                                            📦 Archive
+                                            🗑 Archive
                                         </button>
                                     </form>
 
@@ -134,6 +151,16 @@
         <div class="mt-6">
             {{ $jobApplications->withQueryString()->links() }}
         </div>
-
     </div>
+
+    <script>
+        setTimeout(function() {
+            const message = document.getElementById('success-message');
+            if (message) {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 500);
+            }
+        }, 3000);
+    </script>
+
 </x-app-layout>

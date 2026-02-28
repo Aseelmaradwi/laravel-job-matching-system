@@ -25,26 +25,7 @@ class JobApplicationController extends Controller
 }
     
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
    public function show(string $id)
 {
     $jobApplication = JobApplication::with([
@@ -59,24 +40,54 @@ class JobApplicationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
-    }
+public function edit(string $id)
+{
+    $jobApplication = JobApplication::with([
+        'user',
+        'jobvacancy.company',
+        'resume'
+    ])->findOrFail($id);
+
+    return view('jobapplication.edit', compact('jobApplication'));
+}
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+  public function update(Request $request, string $id)
+{
+    $request->validate([
+        'status' => 'required|in:pending,accepted,rejected'
+    ]);
+
+    $jobApplication = JobApplication::findOrFail($id);
+    $jobApplication->update([
+        'status' => $request->status
+    ]);
+
+    return redirect()
+        ->route('job-applications.index', $id)
+        ->with('success', 'Applicant status updated successfully');
+}
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $jobApplication = JobApplication::findOrFail($id);
+        $jobApplication->delete();
+        return redirect()->route('job-applications.index')->with('success','Job Application Archived Successfully');
+       
+    }
+
+      public function restore(string $id)
+    {
+        $company = JobApplication::withTrashed()->findOrFail($id);
+        $company->restore();
+
+        return redirect()
+            ->route('job-applications.index')
+            ->with('success', 'Company restored successfully');
     }
 }
