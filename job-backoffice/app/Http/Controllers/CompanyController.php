@@ -40,14 +40,13 @@ public function index(Request $request)
 }
 
 
-public function show(string $id)
+public function show(?string $id = null)
 {
-    $company = Company::with([
-        'owner',
-        'jobVacancies',
-        'jobApplications.user',
-        'jobApplications.jobVacancy'
-    ])->findOrFail($id);
+    if ($id) {
+        $company = Company::findOrFail($id);
+    } else {
+        $company = Company::where('ownerId', auth::id())->firstOrFail();
+    }
 
     return view('company.show', compact('company'));
 }
@@ -82,22 +81,37 @@ public function store(CompanyCreateRequest $request)
         ->with('success', 'Company created successfully!');
 }
 
-    public function edit(string $id)
-    {
+   public function edit(?string $id = null)
+{
+    if ($id) {
+        // admin
         $company = Company::findOrFail($id);
-        $owners = User::all(); 
-
-        return view('company.edit', compact('company', 'owners'));
+    } else {
+        // company owner
+        $company = Company::where('ownerId', auth::user()->id)->firstOrFail();
     }
 
-   public function update(CompanyUpdateRequest $request, string $id)
+    $owners = User::all();
+
+    return view('company.edit', compact('company', 'owners'));
+}
+
+public function update(CompanyUpdateRequest $request, ?string $id = null)
 {
-    $company = Company::findOrFail($id);
+    $company = $id
+        ? Company::findOrFail($id) // admin
+        : auth::user()->company; // owner
 
     $company->update($request->validated());
 
+    if (auth::user()->role === 'admin') {
+        return redirect()
+            ->route('companies.show', $company->id)
+            ->with('success', 'Company updated successfully');
+    }
+
     return redirect()
-        ->route('companies.index')
+        ->route('my-company.show')
         ->with('success', 'Company updated successfully');
 }
 

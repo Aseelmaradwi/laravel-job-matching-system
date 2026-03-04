@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\JobApplication;
+use Illuminate\Support\Facades\Auth;
 
 
 use Illuminate\Http\Request;
@@ -11,13 +12,22 @@ class JobApplicationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-       $query = JobApplication::latest();
+ public function index(Request $request)
+{
+    $query = JobApplication::with(['jobvacancy.company', 'user'])
+                ->latest();
 
-    if ($request->input('archived') === 'true') {
+    if (Auth::user()->role === 'company_owner') {
+
+        $query->whereHas('jobvacancy.company', function ($q) {
+            $q->where('ownerId', Auth::id());
+        });
+
+    }
+
+    if ($request->boolean('archived')) {
         $query->onlyTrashed();
-    } 
+    }
 
     $jobApplications = $query->paginate(10)->onEachSide(1);
 

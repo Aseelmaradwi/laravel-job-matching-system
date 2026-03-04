@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+
 
 class CompanyUpdateRequest extends FormRequest
 {
@@ -14,8 +16,8 @@ class CompanyUpdateRequest extends FormRequest
 
  public function rules(): array
 {
-    $companyId = $this->route('company');
-
+$company = $this->route('company');
+$companyId = $company?->id ?? auth::user()->company->id;
     return [
         'name' => [
             'required',

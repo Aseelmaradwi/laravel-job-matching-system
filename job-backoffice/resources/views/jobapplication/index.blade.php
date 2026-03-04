@@ -40,9 +40,11 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
                             Position (Job Vacancy)
                         </th>
+                        @if (auth()->user()->role=='admin')
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
                             Company
                         </th>
+                        @endif
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
                             Status
                         </th>
@@ -71,9 +73,12 @@
                             </td>
 
                             {{-- Company --}}
+                            @if (auth()->user()->role=='admin')
                             <td class="px-6 py-4 text-gray-700">
-                                {{ $application->jobVacancy?->company?->name ?? 'N/A' }}
+                             {{ $application->jobVacancy?->company?->name ?? 'N/A' }}
                             </td>
+                            @endif
+
 
                             {{-- Status Badge --}}
                             <td class="px-6 py-4">

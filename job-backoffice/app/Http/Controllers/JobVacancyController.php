@@ -8,6 +8,8 @@ use App\Models\Company;
 use App\Models\JobCategory;
 use App\Http\Requests\JobVacancyCreateRequest;
 use App\Http\Requests\JobVacancyUpdateRequest;
+use Illuminate\Support\Facades\Auth;
+
 
 
 class JobVacancyController extends Controller
@@ -15,9 +17,17 @@ class JobVacancyController extends Controller
     /**
      * Display a listing of the resource.
      */
+
 public function index(Request $request)
 {
     $query = JobVacancy::with(['company', 'jobcategory']);
+
+    // إذا Company Owner → اعرض بس وظائف شركته
+    if (Auth::user()->role === 'company_owner') {
+        $query->whereHas('company', function ($q) {
+            $q->where('ownerId', Auth::id());
+        });
+    }
 
     if ($request->archived === 'true') {
         $query->onlyTrashed();

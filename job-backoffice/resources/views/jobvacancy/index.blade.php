@@ -119,8 +119,8 @@
                                 ${{ number_format($job->salary, 2) }}
                             </td>
 
-                            <td class="px-6 py-4 text-right space-x-3">
-
+<td class="px-6 py-4">
+    <div class="flex justify-end items-center gap-4">
                                 @if(request('archived') == 'true')
 
                                     <form action="{{ route('job-vacancies.restore', $job->id) }}"
@@ -158,6 +158,7 @@
                                 @endif
 
                             </td>
+                            </div>
                         </tr>
 
                     @empty

@@ -10,32 +10,35 @@
 
             <div class="bg-white shadow-sm rounded-xl p-6">
 
+             {{-- ✅ Success Alert --}}
+    @if(session('success'))
+        <div class="mb-6 bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded-lg">
+            {{ session('success') }}
+        </div>
+    @endif
                 {{-- Top Actions --}}
-                <div class="flex justify-between items-start mb-6">
-                    <a href="{{ route('companies.index') }}"
-                       class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm">
-                        ← Back
-                    </a>
+              <div class="flex justify-end items-start mb-6 space-x-2">
 
-                    <div class="space-x-2">
-                        <a href="{{ route('companies.edit', $company->id) }}"
-                           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-                            Edit
-                        </a>
+    {{-- Edit --}}
+   <a href="{{ auth()->user()->role === 'admin'? route('companies.edit', $company->id): route('my-company.edit') }}"
+   class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+    Edit
+</a>
 
-                        <form action="{{ route('companies.destroy', $company->id) }}"
-                              method="POST"
-                              class="inline-block"
-                              onsubmit="return confirm('Archive this company?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm">
-                                Archive
-                            </button>
-                        </form>
-                    </div>
-                </div>
+    @if(auth()->user()->role === 'admin')
+        <form action="{{ route('companies.destroy', $company->id) }}"
+              method="POST"
+              onsubmit="return confirm('Archive this company?')">
+            @csrf
+            @method('DELETE')
 
+            <button class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm">
+                Archive
+            </button>
+        </form>
+    @endif
+
+</div>
                 {{-- Company Info --}}
                 <div class="mb-8">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">

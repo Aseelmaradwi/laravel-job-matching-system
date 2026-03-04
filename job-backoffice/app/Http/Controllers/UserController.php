@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Http\Requests\UserUpdateRequest;
 
 
 class UserController extends Controller
@@ -36,17 +37,15 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-   public function update(Request $request, string $id)
+public function update(UserUpdateRequest $request, string $id)
 {
     $user = User::findOrFail($id);
 
-    $validated = $request->validate([
-        'password' => ['nullable', 'min:6', 'confirmed'],
-    ]);
+    $validated = $request->validated();
 
     if (!empty($validated['password'])) {
         $user->update([
-            'password' => $validated['password'], // hashed تلقائياً بسبب cast
+            'password' => $validated['password'],
         ]);
     }
 

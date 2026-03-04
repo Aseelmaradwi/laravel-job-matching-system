@@ -16,6 +16,7 @@ class User extends Authenticatable
 
     protected $keyType="string";
     public $incrementing = false;
+    protected $table = "users";
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +26,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'last_login_at',
         'password',
         'role',
     ];
