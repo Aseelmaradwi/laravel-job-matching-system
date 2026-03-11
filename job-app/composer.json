@@ -8,16 +8,17 @@
         "framework"
     ],
     "license": "MIT",
-     "repositories": [
-        {
-            "type": "path",
-            "url": "../job-shared"
-        }],
+        "repositories": [
+            {
+        "type": "path",
+        "url": "../shared"
+    }],
     "require": {
         "php": "^8.2",
+        "job/shared": "*",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "job/shared": "*"
+        "spatie/pdf-to-text": "^1.55"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

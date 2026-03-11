@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,17 +10,13 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable,HasUuids,SoftDeletes;
+    use HasFactory, Notifiable, HasUuids, SoftDeletes;
 
-    protected $keyType="string";
+    protected $keyType = 'string';
     public $incrementing = false;
-    protected $table = "users";
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var list<string>
      */
     protected $fillable = [
         'name',
@@ -30,41 +25,45 @@ class User extends Authenticatable
         'password',
         'role',
     ];
-    protected $dates = [
-        'deleted_at',
-    ];
 
- 
+    /**
+     * Hidden attributes
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Attribute casting
      */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'deleted_at' => 'datetime',
             'password' => 'hashed',
-            'deleted_at'=> 'datetime',
         ];
     }
-    
-     public function resumes()
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    public function resumes()
     {
-        return $this->hasMany(Resume::class,'userId','id');
+        return $this->hasMany(Resume::class, 'userId', 'id');
     }
 
-      public function jobApplications()
+    public function jobApplications()
     {
-        return $this->hasMany(JobApplication::class,'userId','id');
+        return $this->hasMany(JobApplication::class, 'userId', 'id');
     }
-      public function company()
+
+    public function company()
     {
-        return $this->hasOne(Company::class,'ownerId','id');
+        return $this->hasOne(Company::class, 'ownerId', 'id');
     }
 }
