@@ -11,8 +11,9 @@
     "repositories": [
         {
             "type": "path",
-            "url": "../job-shared"
-        }],
+            "url": "../shared"
+        }
+    ],
 
     
     "require": {

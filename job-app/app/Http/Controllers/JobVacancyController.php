@@ -2,101 +2,111 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JobApplication;
-use App\Models\JobVacancy;
-use App\Models\Resume;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use App\Models\JobVacancy;
+use App\Models\JobApplication;
+use App\Models\Resume;
+use App\Http\Requests\ApplyJobRequest;
+
 use Illuminate\Support\Facades\Auth;
 use Spatie\PdfToText\Pdf;
-use Illuminate\Support\Facades\Http;
-
 class JobVacancyController extends Controller
 {
-    public function show(string $id)
+    public function show($id)
     {
-        $jobVacancy = JobVacancy::with(['company','jobcategory'])->findOrFail($id);
-
+        $jobVacancy = JobVacancy::findOrFail($id);
         return view('job.show', compact('jobVacancy'));
     }
 
- public function apply($id)
+    public function apply($id)
     {
         $job = JobVacancy::findOrFail($id);
-        $user = auth::user();
+
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
 
         return view('job.apply', compact('job', 'user'));
     }
 
-    public function processApplication(Request $request, string $id)
+
+    public function processApplication(ApplyJobRequest $request, $id)
     {
-        $jobVacancy = JobVacancy::findOrFail($id);
+        $job  = JobVacancy::findOrFail($id);
 
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email'],
-            'cover_letter' => ['required', 'string', 'min:50'],
-            'resume_file' => ['required', 'file', 'mimes:pdf', 'max:5120'],
-        ]);
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
 
-        $user = $request->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
 
-        $uploadedPath = $request->file('resume_file')->store('resumes', 'public');
-$aiAnalysis = $this->analyzeResumeWithAI($uploadedPath);
-        $resume = Resume::create([
-            'filename' => $request->file('resume_file')->getClientOriginalName(),
-            'fileUrl' => $uploadedPath,
-            'contactDetails' => $request->input('email'),
-            'education' => '',
-            'experience' => '',
-            'skills' => '',
-            'summary' => '',
-            'userId' => $user->id,
-        ]);
+        $request->validated();
+
+        $resumeId = $request->input('resume_id');
+
+        if (empty($resumeId) && !$request->hasFile('resume_file')) {
+            return back()->withErrors(['resume_file' => 'Please select an existing resume or upload a new one.']);
+        }
+
+        $existingApplication = JobApplication::where('userId', $user->id)
+            ->where('jobVacancyId', $job->id)
+            ->exists();
+
+        if ($existingApplication) {
+            return back()->withErrors(['resume_id' => 'You have already applied for this job!']);
+        }
+
+        if (!empty($resumeId)) {
+            $selectedResume = $user->resumes()->where('id', $resumeId)->first();
+
+            if (!$selectedResume) {
+                return back()->withErrors(['resume_id' => 'The selected resume is invalid.']);
+            }
+        }
+
+        if (empty($resumeId) && $request->hasFile('resume_file')) {
+            $file = $request->file('resume_file');
+
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $cloudStorage */
+            $cloudStorage = Storage::disk('cloud');
+
+            $path = $cloudStorage->putFile('resumes', $file, 'public');
+            $fileUrl = $cloudStorage->url($path);
+
+            $resume = Resume::create([
+                'filename'       => $file->getClientOriginalName(),
+                'fileUrl'        => $fileUrl,
+                'contactDetails' => '',
+                'education'      => '',
+                'experience'     => '',
+                'skills'         => '',
+                'summary'        => '',
+                'userId'         => $user->id,
+            ]);
+
+            $resumeId = $resume->id;
+        }
 
         JobApplication::create([
-            'status' => 'submitted',
-            'aiGeneratedScore' => null,
-            'aiGeneratedFeedback' => null,
-            'userId' => $user->id,
-            'resumeId' => $resume->id,
-            'jobVacancyId' => $jobVacancy->id,
+            'userId'       => $user->id,
+            'jobVacancyId' => $job->id,
+            'resumeId'     => $resumeId,
+            'status'       => 'pending',
         ]);
 
-        return redirect()
-            ->route('job.apply', $jobVacancy->id)
-            ->with('success', 'Your application was submitted successfully. We will review it soon.');
+        return redirect()->route('job-applications.index')
+                         ->with('success', 'Application submitted successfully!');
     }
 
 
-    private function analyzeResumeWithAI($filePath)
-{
-    $fullPath = storage_path('app/public/'.$filePath);
 
-    // Extract text from PDF
-    $text = Pdf::getText($fullPath);
-
-    $response = Http::withHeaders([
-        'Authorization' => 'Bearer '.env('GROQ_API_KEY'),
-        'Content-Type' => 'application/json',
-    ])->post('https://api.groq.com/openai/v1/chat/completions', [
-        'model' => 'llama-3.3-70b-versatile',
-        'messages' => [
-            [
-                'role' => 'system',
-                'content' => 'You are a CV analyzer. Extract skills, experience, education and summary in JSON format.'
-            ],
-            [
-                'role' => 'user',
-                'content' => $text
-            ]
-        ],
-        'temperature' => 0.2
-    ]);
-
-    return $response->json();
-}
-
-  public function testGroqApi()
+        public function testGroqApi()
     {
         try {
             $apiKey = env('GROQ_API_KEY');

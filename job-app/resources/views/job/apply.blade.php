@@ -39,6 +39,18 @@
 
                 <div class="p-8 space-y-8">
 
+                    @if(session('error'))
+                        <div class="border border-red-500/50 bg-red-900/30 text-red-200 rounded-lg px-4 py-3">
+                            {{ session('error') }}
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="border border-red-500/50 bg-red-900/30 text-red-200 rounded-lg px-4 py-3">
+                            {{ $errors->first() }}
+                        </div>
+                    @endif
+
 
                     <div class="border border-gray-700 rounded-xl p-6 bg-gray-800/50">
                         <div class="flex items-start justify-between gap-4">
@@ -61,7 +73,7 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-green-400 font-bold text-lg">${{ number_format((float)$job->salary) }}/year</p>
+                                <p class="text-green-400 font-bold text-lg">${{ number_format($job->salary) }}/year</p>
                                 <p class="text-white/60 text-sm mt-1">{{ $job->type }}</p>
                             </div>
                         </div>
@@ -88,7 +100,7 @@
                                 >
                                     <option value="">-- Choose an existing resume --</option>
                                     @foreach($user->resumes as $resume)
-                                        <option value="{{ $resume->id }}">
+                                        <option value="{{ $resume->id }}" @selected(old('resume_id') == $resume->id)>
                                             {{ $resume->filename ?? 'Resume' }}
                                             @if($resume->created_at)
                                                 ({{ $resume->created_at->diffForHumans() }})
@@ -177,23 +189,14 @@
                             >
                                 Cancel
                             </a>
-                            
-                            @if($user->resumes && $user->resumes->count() > 0)
-                                <button 
-                                    type="submit" 
-                                    class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg font-semibold transition transform hover:scale-105 shadow-lg hover:shadow-indigo-500/50"
-                                >
-                                    Submit Application
-                                </button>
-                            @else
-                                <button 
-                                    type="button" 
-                                    disabled
-                                    class="flex-1 px-6 py-3 bg-gray-700 text-gray-400 rounded-lg font-semibold cursor-not-allowed"
-                                >
-                                    Upload Resume First
-                                </button>
-                            @endif
+                            <button
+                                id="submit-btn"
+                                type="submit"
+                                @if(!$hasResumes) disabled @endif
+                                class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg font-semibold transition transform hover:scale-105 shadow-lg hover:shadow-indigo-500/50 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                            >
+                                Submit Application
+                            </button>
                         </div>
                     </form>
 
@@ -221,12 +224,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    if (select) select.addEventListener('change', updateState);
+    if (select) {
+        select.addEventListener('change', () => {
+            updateState();
+            if (select.value) {
+                const btn = document.getElementById('submit-btn');
+                if (btn) btn.disabled = false;
+            }
+        });
+    }
+
+    function enableSubmit() {
+        const btn = document.getElementById('submit-btn');
+        if (btn) btn.disabled = false;
+    }
 
     fileInput.addEventListener('change', () => {
         if (fileInput.files && fileInput.files.length) {
             fileNameSpan.textContent = fileInput.files[0].name;
             if (select) select.value = '';
+            enableSubmit();
             updateState();
         }
     });
@@ -261,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fileInput.files = e.dataTransfer.files;
             fileNameSpan.textContent = e.dataTransfer.files[0].name;
             if (select) select.value = '';
+            enableSubmit();
             updateState();
         }
     });
